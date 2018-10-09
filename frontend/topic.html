@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="styling.css">
+		<title>forum</title>
+	</head>
+	<body>
+		<div class="container-page">
+			<div class="side-menu">	
+				<img src="./assets/49986.svg" onclick="location.href='index.html';">		
+			</div>
+			<div class="grid-container">
+				<div class="header-container">
+					<div id="topic-title" class="header-content"></div>	
+				</div>
+				<div class="topic-container">
+					<div id="topic-header-content">
+						<div id="no-posts">No posts yet...</div>
+						<div id="yes-posts">Available posts:</div>		
+					</div>
+					<div class="topic-list-container">
+						<ul></ul>
+						<br><br>
+					</div>
+				</div>
+				<div class="create-topic-container">
+					<ul class="form-input">
+						<li>Create new message:
+						</li>
+						<li>
+        				<textarea id="input" class="field-long field-textarea"></textarea>
+        				</li>
+   						<li>
+        				<input type="submit" value="Submit" id="button"/>
+   						</li>
+					</ul>
+				</div>
+				<div class="footer-container">
+					<span>&#9400; Build by C. 2018</span>
+				</div>
+			</div>
+
+		<script type="text/javascript">
+
+			var id;
+
+			init();
+
+			function init() {
+				document.getElementById('yes-posts').style.display = "none";
+				setTitle();
+				var url = location.href;
+				var params = url.split('?')[1];
+				id = params.replace('id=', '');
+				document.getElementById('button').addEventListener('click', postMessage);
+				getData(id, function(results) {
+					for (var counter = 0; counter < results.length; counter++) {
+						appendMessage(results[counter]);
+					}
+				});
+			}
+
+			function setTitle() {
+				var topicname = localStorage.getItem('_topicname');
+				document.getElementById('topic-title').innerHTML = topicname;
+			}
+
+			function postMessage() {
+				var message = document.getElementById('input').value;
+				if (message.length>100) {
+					console.log("error, input too long")
+				}
+				else {
+					var body = { message: message };
+					var xhttp = new XMLHttpRequest();
+					xhttp.onreadystatechange = function() {
+			    		if (this.readyState == 4 && this.status == 200) {
+			    			location.reload();
+			    		}
+					};
+					xhttp.open('POST', 'http://localhost:3000/message/' + id, true);
+					xhttp.setRequestHeader('Content-Type', 'application/json');
+					xhttp.send(JSON.stringify(body));
+				}
+			}
+
+			function getData(id, callback) {
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+			    	if (this.readyState == 4 && this.status == 200) {
+			    		callback(JSON.parse(xhttp.responseText));
+			    	}
+				};
+				xhttp.open('GET', 'http://localhost:3000/topic/' + id, true);
+				xhttp.send();
+			}
+
+			function appendMessage(message) {
+				var list = document.getElementsByTagName('ul')[0];
+				var item = document.createElement('li');
+				var div = document.createElement('div');
+				var getTime = (message.message_time.slice(11,19));
+				var getDate = (message.message_time.slice(0,9));
+				var text = document.createTextNode(message.content);
+				var date = document.createTextNode(" "+ "created on: " + getDate + " at " + getTime)
+				item.appendChild(text);
+				div.appendChild(date);
+				item.appendChild(div);
+				list.appendChild(item);
+				document.getElementById('no-posts').style.display = "none";
+			}
+
+		</script>
+	</body>
+</html>
